@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Sync Code to Remote",
+        "type": "shell",
+        "command": "rsync -avz --exclude '.git/' ./ adminus@192.168.88.245:/home/adminus/dev/linudrv",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "Build on Remote",
+        "type": "shell",
+        "command": "ssh user@remote_host 'cd /home/adminus/dev/linudrv && make'",
+        "problemMatcher": []
+      },
+      {
+        "label": "Run on Remote",
+        "type": "shell",
+        "command": "ssh adminus@192.168.88.245 'cd /home/adminus/dev/linudrv && ./output_binary'",
+        "problemMatcher": []
+      }
+    ]
+  }
+  
