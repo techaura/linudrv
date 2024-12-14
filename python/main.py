@@ -38,10 +38,10 @@ if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
     print(f"stderr: {result.stderr.decode()}")
 
     # Проверка успешности генерации сертификатов
-    if result.returncode == 0:
+    if os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):
         print(f"Сертификат и ключ успешно созданы в {CERT_DIR}")
     else:
-        print(f"Ошибка при создании сертификатов и ключей.")
+        print(f"Ошибка: не удалось создать сертификат или ключ.")
         exit(1)
 
 # Настройка SSL
