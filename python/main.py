@@ -4,12 +4,6 @@ import ssl
 import os
 import subprocess
 
-import asyncio
-import websockets
-import ssl
-import os
-import subprocess
-
 # Настройки
 HOST = "localhost"
 PORT = 8765
@@ -26,17 +20,28 @@ if not os.path.exists(CERT_DIR):
 if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
     print("Сертификаты или ключи не найдены. Генерация...")
 
+    # Параметры для сертификата (можно настроить под себя)
+    subject = "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=localhost"
+
     # Генерация сертификатов и ключей с помощью OpenSSL
-    result = subprocess.run([
-        "openssl", "req", "-x509", "-newkey", "rsa:4096",
-        "-keyout", KEY_FILE, "-out", CERT_FILE, "-days", "365", "-nodes"
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(
+        [
+            "openssl", "req", "-x509", "-newkey", "rsa:4096",
+            "-keyout", KEY_FILE, "-out", CERT_FILE, "-days", "365", "-nodes",
+            "-subj", subject  # Указываем все параметры в одном месте
+        ],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+
+    # Выводим стандартный вывод и ошибки
+    print(f"stdout: {result.stdout.decode()}")
+    print(f"stderr: {result.stderr.decode()}")
 
     # Проверка успешности генерации сертификатов
     if result.returncode == 0:
         print(f"Сертификат и ключ успешно созданы в {CERT_DIR}")
     else:
-        print(f"Ошибка при создании сертификатов и ключей: {result.stderr.decode()}")
+        print(f"Ошибка при создании сертификатов и ключей.")
         exit(1)
 
 # Настройка SSL
