@@ -83,7 +83,7 @@ async def handler(websocket, path):
         print(f"Ошибка при обработке сообщений: {e}")
     finally:
         print("Обработка завершена.")
-        
+
 
 # Основная функция запуска сервера
 async def main():

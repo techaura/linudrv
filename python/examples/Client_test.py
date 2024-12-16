@@ -25,16 +25,20 @@ async def send_messages(websocket):
             await websocket.send(message)
             print(f"Отправлено: {message}")
     except websockets.ConnectionClosedOK:
-        print("Соединение закрыто.")
+        print("Соединение закрыто (отправка).")
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения: {e}")
 
 # Функция получения сообщений
 async def receive_messages(websocket):
     try:
         while True:
             response = await websocket.recv()
-            print(f"Получено: {response}")
+            print(f"Получено сообщение от сервера: {response}")
     except websockets.ConnectionClosedOK:
-        print("Соединение закрыто.")
+        print("Соединение закрыто (получение).")
+    except Exception as e:
+        print(f"Ошибка при получении сообщения: {e}")
 
 # Основная клиентская функция
 async def test_client():
@@ -42,7 +46,7 @@ async def test_client():
         async with websockets.connect(URI, ssl=ssl_context) as websocket:
             print("Подключение установлено. Введите 'exit' для завершения.")
 
-            # Запуск процессов для отправки и получения сообщений
+            # Запуск задач для отправки и получения сообщений
             send_task = asyncio.create_task(send_messages(websocket))
             receive_task = asyncio.create_task(receive_messages(websocket))
 
