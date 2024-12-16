@@ -3,7 +3,7 @@ import ssl
 import websockets
 
 # Настройки клиента
-HOST = "192.168.88.245"
+HOST = "localhost" #"192.168.88.245"
 PORT = 8765
 URI = f"wss://{HOST}:{PORT}"  # URL для подключения к серверу
 
