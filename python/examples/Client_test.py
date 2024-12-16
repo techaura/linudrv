@@ -12,6 +12,7 @@ ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False  # Отключаем проверку имени хоста
 ssl_context.verify_mode = ssl.CERT_NONE  # Отключаем проверку сертификата (только для тестов!)
 
+
 # Функция отправки сообщений
 async def send_messages(websocket):
     try:
@@ -29,8 +30,10 @@ async def send_messages(websocket):
     except Exception as e:
         print(f"Ошибка при отправке сообщения: {e}")
 
+
 # Функция получения сообщений
 async def receive_messages(websocket):
+    print("Получение сообщений запущено")
     try:
         while True:
             response = await websocket.recv()
@@ -39,6 +42,7 @@ async def receive_messages(websocket):
         print("Соединение закрыто (получение).")
     except Exception as e:
         print(f"Ошибка при получении сообщения: {e}")
+
 
 # Основная клиентская функция
 async def test_client():
