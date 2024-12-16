@@ -51,21 +51,6 @@ ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
 
 # Обработчик WebSocket-сообщений
 async def handler(websocket, path):
-    # try:
-    #     print(f"New connection from {websocket.remote_address}")
-    #
-    #     # Принимаем сообщение от клиента
-    #     message = await websocket.recv()
-    #     print(f"Received message: {message}")
-    #
-    #     # Отправляем сообщение обратно клиенту
-    #     response = f"Echo: {message}"
-    #     await websocket.send(response)
-    #     print(f"Sent response: {response}")
-    # except Exception as e:
-    #     print(f"Error during communication: {e}")
-    # finally:
-    #     await websocket.close()
     print(f"Новое подключение: {websocket.remote_address}")
     try:
         while True:
@@ -75,8 +60,11 @@ async def handler(websocket, path):
 
             # Отправляем сообщение обратно клиенту
             response = f"Echo: {message}"
-            await websocket.send(response)
-            print(f"Ответ отправлен: {response}")
+            try:
+                await websocket.send(response)
+                print(f"Ответ отправлен: {response}")
+            except:
+                print(f"не смогла я: {response}")
     except websockets.ConnectionClosed:
         print("Соединение закрыто.")
     except Exception as e:
