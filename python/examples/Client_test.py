@@ -34,10 +34,13 @@ async def receive_messages(websocket):
     print("Получение сообщений запущено")
     try:
         while True:
+            print("Ожидание сообщения от сервера...")
             response = await websocket.recv()
             print(f"Получено сообщение от сервера: {response}")
     except websockets.ConnectionClosedOK:
         print("Соединение закрыто (получение).")
+    except websockets.ConnectionClosedError as e:
+        print(f"Ошибка соединения: {e}")
     except Exception as e:
         print(f"Ошибка при получении сообщения: {e}")
 
@@ -73,5 +76,4 @@ async def test_client():
 # Запуск клиента
 if __name__ == "__main__":
     asyncio.run(test_client())
-
 
