@@ -31,13 +31,12 @@ async def send_messages(websocket, input_queue, stop_event):
             message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
-                await websocket.close()
                 stop_event.set()
                 break
-            if websocket.open:
+            try:
                 await websocket.send(message)
                 print(f"Отправлено: {message}")
-            else:
+            except websockets.ConnectionClosed:
                 print("Соединение отсутствует. Сообщение не отправлено.")
     except Exception as e:
         print(f"Ошибка при отправке: {e}")
@@ -79,8 +78,8 @@ async def test_client():
                     send_messages(websocket, input_queue, stop_event),
                     receive_messages(websocket, stop_event),
                 )
-        except websockets.ConnectionClosed:
-            print("\nСоединение с сервером потеряно. Повторная попытка через 5 секунд...")
+        except (websockets.ConnectionClosed, ConnectionRefusedError):
+            print("\nСервер недоступен. Повторная попытка через 5 секунд...")
         except Exception as e:
             print(f"\nОшибка клиента: {e}. Повторная попытка через 5 секунд...")
         finally:
