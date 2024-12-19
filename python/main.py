@@ -28,7 +28,7 @@ except OSError as e:
 
 # Checking the availability of certificates and keys
 if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
-    print("Сертификаты или ключи не найдены. Генерация...")
+    print("No certificates or keys found. Auto generation...")
 
     # Parameters for the certificate (can be customized)
     subject = "/C=US/ST=California/L=San Francisco/O=MyOrg/OU=MyUnit/CN=localhost"
@@ -38,7 +38,7 @@ if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
         [
             "openssl", "req", "-x509", "-newkey", "rsa:4096",
             "-keyout", KEY_FILE, "-out", CERT_FILE, "-days", "365", "-nodes",
-            "-subj", subject  # Указываем все параметры в одном месте
+            "-subj", subject  # Specify all parameters in one place
         ],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -49,9 +49,9 @@ if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
 
     # Checking the success of certificate generation
     if os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):
-        print(f"Сертификат и ключ успешно созданы в {CERT_DIR}")
+        print(f"The certificate and key were successfully created in {CERT_DIR}")
     else:
-        print(f"Ошибка: не удалось создать сертификат или ключ.")
+        print(f"Error: Failed to create certificate or key.")
         exit(1)
 
 # SSL Configuration
@@ -61,32 +61,32 @@ ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
 
 # WebSocket message handler
 async def handler(websocket, path):
-    print(f"Новое подключение: {websocket.remote_address}")
+    print(f"New connection: {websocket.remote_address}")
     try:
         while True:
             message = await websocket.recv()
-            print(f"Получено сообщение от клиента: {message}")
+            print(f"Message received from a customer: {message}")
             response = f"Echo: {message}"
             await websocket.send(response)
-            print(f"Ответ отправлен: {response}")
+            print(f"Response sent: {response}")
     except websockets.ConnectionClosed:
-        print("Соединение закрыто.")
+        print("Connection closed.")
     except Exception as e:
-        print(f"Ошибка при обработке сообщений: {e}")
+        print(f"Error during message processing: {e}")
     finally:
-        print("Обработка завершена.")
+        print("Processing complete.")
 
 
 # Basic server startup function
 async def main():
-    print(f"Запуск сервера на {HOST}:{PORT}...")
+    print(f"Running the server on {HOST}:{PORT}...")
     server = await websockets.serve(
         handler,
         HOST,
         PORT,
         ssl=ssl_context
     )
-    print(f"Сервер запущен. Ожидание подключений на wss://{HOST}:{PORT}")
+    print(f"The server is up and running. Waiting for connections on wss://{HOST}:{PORT}")
 
     # Start the server and wait for it to finish
     await server.wait_closed()
