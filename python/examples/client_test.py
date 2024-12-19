@@ -14,59 +14,50 @@ ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
 # Поток для ввода данных
-def input_thread(input_queue, stop_event):
-    while not stop_event.is_set():
+def input_thread(input_queue, exit_event):
+    while not exit_event.is_set():
         print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
         message = input()
         input_queue.put(message)
         if message.lower() == "exit":
-            stop_event.set()
+            exit_event.set()
             break
 
 # Асинхронная функция отправки сообщений
-async def send_messages(websocket, input_queue, stop_event):
-    try:
-        while not stop_event.is_set():
-            # Ожидание сообщения от пользователя
+async def send_messages(websocket, input_queue):
+    while True:
+        try:
             message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
-                stop_event.set()
-                break
-            try:
-                await websocket.send(message)
-                print(f"Отправлено: {message}")
-            except websockets.ConnectionClosed:
-                print("Соединение отсутствует. Сообщение не отправлено.")
-    except Exception as e:
-        print(f"Ошибка при отправке: {e}")
+                await websocket.close()
+                return
+            await websocket.send(message)
+            print(f"Отправлено: {message}")
+        except websockets.ConnectionClosed:
+            print("Соединение отсутствует. Сообщение не отправлено.")
+            await asyncio.sleep(1)  # Немного подождать перед повтором
+        except Exception as e:
+            print(f"Ошибка при отправке сообщения: {e}")
+            return
 
 # Асинхронная функция получения сообщений
-async def receive_messages(websocket, stop_event):
-    try:
-        while not stop_event.is_set():
-            try:
-                response = await websocket.recv()
-                print(f"\nПолучено от сервера: {response}")
-                print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
-            except websockets.ConnectionClosed:
-                print("\nСоединение закрыто сервером.")
-                stop_event.set()
-                break
-    except Exception as e:
-        print(f"Ошибка при получении сообщения: {e}")
+async def receive_messages(websocket):
+    while True:
+        try:
+            response = await websocket.recv()
+            print(f"\nПолучено от сервера: {response}")
+            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+        except websockets.ConnectionClosed:
+            print("\nСоединение закрыто сервером.")
+            return
+        except Exception as e:
+            print(f"Ошибка при получении сообщения: {e}")
+            return
 
 # Основная функция клиента
-async def test_client():
-    input_queue = Queue()
-    stop_event = asyncio.Event()
-
-    # Запуск потока для ввода
-    input_thread_instance = Thread(target=input_thread, args=(input_queue, stop_event))
-    input_thread_instance.daemon = True
-    input_thread_instance.start()
-
-    while not stop_event.is_set():
+async def connect_to_server(input_queue, exit_event):
+    while not exit_event.is_set():
         try:
             print(f"\nПопытка подключения к серверу {URI}...")
             async with websockets.connect(URI, ssl=ssl_context) as websocket:
@@ -75,23 +66,26 @@ async def test_client():
 
                 # Запуск задач для отправки и получения сообщений
                 await asyncio.gather(
-                    send_messages(websocket, input_queue, stop_event),
-                    receive_messages(websocket, stop_event),
+                    send_messages(websocket, input_queue),
+                    receive_messages(websocket),
                 )
         except (websockets.ConnectionClosed, ConnectionRefusedError):
             print("\nСервер недоступен. Повторная попытка через 5 секунд...")
         except Exception as e:
             print(f"\nОшибка клиента: {e}. Повторная попытка через 5 секунд...")
         finally:
-            if stop_event.is_set():
-                print("\nКлиент завершил работу.")
-                break
+            await asyncio.sleep(5)  # Ожидание перед повторной попыткой подключения
 
-        # Ожидание перед повторной попыткой подключения
-        for i in range(5, 0, -1):
-            print(f"\rПереподключение через {i} секунд...", end="", flush=True)
-            await asyncio.sleep(1)
-        print("\nПопытка подключения снова.")
+    print("\nКлиент завершил работу.")
 
 if __name__ == "__main__":
-    asyncio.run(test_client())
+    input_queue = Queue()
+    exit_event = asyncio.Event()
+
+    # Запуск потока для ввода
+    input_thread_instance = Thread(target=input_thread, args=(input_queue, exit_event))
+    input_thread_instance.daemon = True
+    input_thread_instance.start()
+
+    # Запуск основного цикла клиента
+    asyncio.run(connect_to_server(input_queue, exit_event))
