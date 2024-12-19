@@ -2,17 +2,22 @@ import asyncio
 import ssl
 import websockets
 
-URI = "wss://localhost:8765"
+# Настройки клиента
+HOST = "localhost"
+PORT = 8765
+URI = f"wss://{HOST}:{PORT}"
+
 ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
-async def send_messages(websocket, stop_event):
+# Функция отправки сообщений
+async def send_messages(websocket):
     try:
-        while not stop_event.is_set():
+        while True:
             message = input("Введите сообщение для отправки ('exit' для завершения): ")
             if message.lower() == "exit":
-                stop_event.set()
+                print("Завершение соединения...")
                 await websocket.close()
                 break
             await websocket.send(message)
@@ -20,28 +25,34 @@ async def send_messages(websocket, stop_event):
     except Exception as e:
         print(f"Ошибка при отправке: {e}")
 
-async def receive_messages(websocket, stop_event):
+# Функция получения сообщений
+async def receive_messages(websocket):
     try:
-        while not stop_event.is_set():
+        while True:
             response = await websocket.recv()
             print(f"Получено от сервера: {response}")
+    except websockets.ConnectionClosedOK:
+        print("Соединение закрыто (получение).")
     except Exception as e:
-        print(f"Ошибка при получении: {e}")
+        print(f"Ошибка при получении сообщения: {e}")
 
-async def main():
-    stop_event = asyncio.Event()
-    async with websockets.connect(URI, ssl=ssl_context) as websocket:
-        send_task = asyncio.create_task(send_messages(websocket, stop_event))
-        receive_task = asyncio.create_task(receive_messages(websocket, stop_event))
+# Основная функция клиента
+async def test_client():
+    try:
+        print(f"Подключение к серверу {URI}...")
+        async with websockets.connect(URI, ssl=ssl_context) as websocket:
+            print("Подключение установлено.")
 
-        done, pending = await asyncio.wait(
-            [send_task, receive_task],
-            return_when=asyncio.FIRST_COMPLETED
-        )
+            # Запуск задач отправки и получения сообщений
+            await asyncio.gather(
+                send_messages(websocket),
+                receive_messages(websocket),
+            )
+    except Exception as e:
+        print(f"Ошибка клиента: {e}")
+        import traceback
+        traceback.print_exc()
 
-        stop_event.set()
-        for task in pending:
-            task.cancel()
-
+# Запуск клиента
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(test_client())
