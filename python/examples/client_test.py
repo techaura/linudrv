@@ -39,7 +39,7 @@ async def send_messages(websocket, input_queue, exit_event):
         print(f"Ошибка при отправке сообщения: {e}")
 
 # Асинхронная функция получения сообщений
-async def receive_messages(websocket, exit_event, disconnect_event):
+async def receive_messages(websocket, exit_event, connection_event):
     try:
         while not exit_event.is_set():
             response = await websocket.recv()
@@ -47,53 +47,52 @@ async def receive_messages(websocket, exit_event, disconnect_event):
             print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
     except websockets.ConnectionClosed:
         print("\nСоединение закрыто сервером.")
-        disconnect_event.set()
+        connection_event.clear()
     except Exception as e:
         print(f"Ошибка при получении сообщения: {e}")
-        disconnect_event.set()
+        connection_event.clear()
 
-# Основная функция подключения и управления реконнектом
-async def connect_to_server(input_queue, exit_event):
-    disconnect_event = asyncio.Event()
-
+# Таймер реконнекта
+async def reconnect_timer(input_queue, exit_event, connection_event):
     while not exit_event.is_set():
-        disconnect_event.clear()  # Сброс состояния перед подключением
+        await asyncio.sleep(5)  # Таймер 5 секунд
+        if not connection_event.is_set():
+            print("\nПопытка переподключения...")
+            await connect_to_server(input_queue, exit_event, connection_event)
 
-        try:
-            print(f"\nПопытка подключения к серверу {URI}...")
-            async with websockets.connect(URI, ssl=ssl_context) as websocket:
-                print("Подключение установлено.")
-                print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+# Основная функция подключения к серверу
+async def connect_to_server(input_queue, exit_event, connection_event):
+    try:
+        print(f"\nПопытка подключения к серверу {URI}...")
+        async with websockets.connect(URI, ssl=ssl_context) as websocket:
+            print("Подключение установлено.")
+            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+            connection_event.set()  # Установить состояние соединения
 
-                # Запуск задач для отправки и получения сообщений
-                await asyncio.gather(
-                    send_messages(websocket, input_queue, exit_event),
-                    receive_messages(websocket, exit_event, disconnect_event),
-                )
-        except (websockets.ConnectionClosed, ConnectionRefusedError):
-            print("\nСервер недоступен.")
-        except Exception as e:
-            print(f"\nОшибка клиента: {e}.")
-        finally:
-            if exit_event.is_set():
-                print("\nКлиент завершил работу.")
-                break
-
-        # Ожидание реконнекта, если соединение было потеряно
-        if not disconnect_event.is_set():
-            disconnect_event.set()
-
-        print("Ожидание перед реконнектом...")
-        await asyncio.sleep(5)
+            # Запуск задач для отправки и получения сообщений
+            await asyncio.gather(
+                send_messages(websocket, input_queue, exit_event),
+                receive_messages(websocket, exit_event, connection_event),
+            )
+    except (websockets.ConnectionClosed, ConnectionRefusedError):
+        print("\nСервер недоступен.")
+        connection_event.clear()
+    except Exception as e:
+        print(f"\nОшибка клиента: {e}.")
+        connection_event.clear()
 
 if __name__ == "__main__":
     input_queue = Queue()
     exit_event = asyncio.Event()
+    connection_event = asyncio.Event()  # Указывает состояние соединения
 
     # Запуск потока для ввода
     input_thread_instance = Thread(target=input_thread, args=(input_queue, exit_event))
     input_thread_instance.daemon = True
     input_thread_instance.start()
 
-    # Запуск основного цикла клиента
-    asyncio.run(connect_to_server(input_queue, exit_event))
+    # Запуск таймера реконнекта и основного подключения
+    asyncio.run(asyncio.gather(
+        reconnect_timer(input_queue, exit_event, connection_event),
+        connect_to_server(input_queue, exit_event, connection_event),
+    ))
