@@ -59,33 +59,39 @@ async def receive_messages(websocket, stop_event):
 # Основная функция клиента
 async def test_client():
     input_queue = Queue()
-    stop_event = asyncio.Event()  # Событие для координации завершения
 
     # Запуск потока для ввода
     input_thread_instance = Thread(target=input_thread, args=(input_queue,))
     input_thread_instance.daemon = True
     input_thread_instance.start()
 
-    try:
-        print(f"Подключение к серверу {URI}...")
-        async with websockets.connect(URI, ssl=ssl_context) as websocket:
-            print("Подключение установлено.")
-            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+    stop_event = asyncio.Event()  # Событие для координации завершения
 
-            # Запуск задач для отправки и получения сообщений
-            await asyncio.gather(
-                send_messages(websocket, input_queue, stop_event),
-                receive_messages(websocket, stop_event),
-            )
-    except websockets.ConnectionClosed:
-        print("Сервер завершил соединение.")
-    except Exception as e:
-        print(f"Ошибка клиента: {e}")
-        import traceback
-        traceback.print_exc()
-    finally:
-        print("Клиент завершил работу.")
+    while True:
+        try:
+            print(f"Подключение к серверу {URI}...")
+            async with websockets.connect(URI, ssl=ssl_context) as websocket:
+                print("Подключение установлено.")
+                print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
 
-# Запуск клиента
+                # Запуск задач для отправки и получения сообщений
+                await asyncio.gather(
+                    send_messages(websocket, input_queue, stop_event),
+                    receive_messages(websocket, stop_event),
+                )
+        except websockets.ConnectionClosed:
+            print("Соединение с сервером потеряно. Повторная попытка через 5 секунд...")
+        except Exception as e:
+            print(f"Ошибка клиента: {e}. Повторная попытка через 5 секунд...")
+            import traceback
+            traceback.print_exc()
+        finally:
+            if stop_event.is_set():
+                print("Клиент завершил работу.")
+                break
+
+        # Ожидание перед повторной попыткой подключения
+        await asyncio.sleep(5)
+
 if __name__ == "__main__":
     asyncio.run(test_client())
