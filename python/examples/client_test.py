@@ -81,7 +81,8 @@ async def connect_to_server(input_queue, exit_event, connection_event):
         print(f"\nОшибка клиента: {e}.")
         connection_event.clear()
 
-if __name__ == "__main__":
+# Запуск всех задач клиента
+async def main():
     input_queue = Queue()
     exit_event = asyncio.Event()
     connection_event = asyncio.Event()  # Указывает состояние соединения
@@ -91,8 +92,11 @@ if __name__ == "__main__":
     input_thread_instance.daemon = True
     input_thread_instance.start()
 
-    # Запуск таймера реконнекта и основного подключения
-    asyncio.run(asyncio.gather(
+    # Запуск задач
+    await asyncio.gather(
         reconnect_timer(input_queue, exit_event, connection_event),
         connect_to_server(input_queue, exit_event, connection_event),
-    ))
+    )
+
+if __name__ == "__main__":
+    asyncio.run(main())
