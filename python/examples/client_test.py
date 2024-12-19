@@ -69,7 +69,7 @@ async def test_client():
 
     while True:
         try:
-            print(f"Подключение к серверу {URI}...")
+            print(f"\nПопытка подключения к серверу {URI}...")
             async with websockets.connect(URI, ssl=ssl_context) as websocket:
                 print("Подключение установлено.")
                 print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
@@ -80,18 +80,19 @@ async def test_client():
                     receive_messages(websocket, stop_event),
                 )
         except websockets.ConnectionClosed:
-            print("Соединение с сервером потеряно. Повторная попытка через 5 секунд...")
+            print("\nСоединение с сервером потеряно. Повторная попытка через 5 секунд...")
         except Exception as e:
-            print(f"Ошибка клиента: {e}. Повторная попытка через 5 секунд...")
-            import traceback
-            traceback.print_exc()
+            print(f"\nОшибка клиента: {e}. Повторная попытка через 5 секунд...")
         finally:
             if stop_event.is_set():
-                print("Клиент завершил работу.")
+                print("\nКлиент завершил работу.")
                 break
 
         # Ожидание перед повторной попыткой подключения
-        await asyncio.sleep(5)
+        for i in range(5, 0, -1):
+            print(f"\rПереподключение через {i} секунд...", end="", flush=True)
+            await asyncio.sleep(1)
+        print("\nПопытка подключения снова.")
 
 if __name__ == "__main__":
     asyncio.run(test_client())
