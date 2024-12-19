@@ -29,16 +29,15 @@ async def send_messages(websocket, stop_event):
         print(f"Ошибка при отправке сообщения: {e}")
 
 # Функция получения сообщений
-async def receive_messages(websocket, stop_event):
+async def receive_messages(websocket):
     try:
-        while not stop_event.is_set():
+        while True:
             response = await websocket.recv()
             print(f"Получено от сервера: {response}")
     except websockets.ConnectionClosedOK:
         print("Соединение закрыто (получение).")
     except Exception as e:
-        if not stop_event.is_set():  # Игнорируем ошибки после явного завершения
-            print(f"Ошибка при получении сообщения: {e}")
+        print(f"Ошибка при получении сообщения: {e}")
 
 # Основная функция клиента
 async def test_client():

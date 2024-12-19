@@ -54,17 +54,11 @@ async def handler(websocket, path):
     print(f"Новое подключение: {websocket.remote_address}")
     try:
         while True:
-            # Получаем сообщение от клиента
             message = await websocket.recv()
             print(f"Получено сообщение от клиента: {message}")
-
-            # Отправляем сообщение обратно клиенту
             response = f"Echo: {message}"
-            try:
-                await websocket.send(response)
-                print(f"Ответ отправлен: {response}")
-            except:
-                print(f"не смогла я: {response}")
+            await websocket.send(response)
+            print(f"Ответ отправлен: {response}")
     except websockets.ConnectionClosed:
         print("Соединение закрыто.")
     except Exception as e:
