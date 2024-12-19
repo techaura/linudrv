@@ -25,37 +25,39 @@ def input_thread(input_queue, exit_event):
 
 # Асинхронная функция отправки сообщений
 async def send_messages(websocket, input_queue):
-    while True:
-        try:
+    try:
+        while True:
             message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
                 await websocket.close()
                 return
-            await websocket.send(message)
-            print(f"Отправлено: {message}")
-        except websockets.ConnectionClosed:
-            print("Соединение отсутствует. Сообщение не отправлено.")
-            await asyncio.sleep(1)  # Немного подождать перед повтором
-        except Exception as e:
-            print(f"Ошибка при отправке сообщения: {e}")
-            return
+            try:
+                await websocket.send(message)
+                print(f"Отправлено: {message}")
+            except websockets.ConnectionClosed:
+                print("Соединение отсутствует. Сообщение не отправлено.")
+                return
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения: {e}")
+        return
 
 # Асинхронная функция получения сообщений
 async def receive_messages(websocket):
-    while True:
-        try:
-            response = await websocket.recv()
-            print(f"\nПолучено от сервера: {response}")
-            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
-        except websockets.ConnectionClosed:
-            print("\nСоединение закрыто сервером.")
-            return
-        except Exception as e:
-            print(f"Ошибка при получении сообщения: {e}")
-            return
+    try:
+        while True:
+            try:
+                response = await websocket.recv()
+                print(f"\nПолучено от сервера: {response}")
+                print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+            except websockets.ConnectionClosed:
+                print("\nСоединение закрыто сервером.")
+                return
+    except Exception as e:
+        print(f"Ошибка при получении сообщения: {e}")
+        return
 
-# Основная функция клиента
+# Функция подключения к серверу с реконнектом
 async def connect_to_server(input_queue, exit_event):
     while not exit_event.is_set():
         try:
@@ -74,9 +76,12 @@ async def connect_to_server(input_queue, exit_event):
         except Exception as e:
             print(f"\nОшибка клиента: {e}. Повторная попытка через 5 секунд...")
         finally:
-            await asyncio.sleep(5)  # Ожидание перед повторной попыткой подключения
+            if exit_event.is_set():
+                print("\nКлиент завершил работу.")
+                break
 
-    print("\nКлиент завершил работу.")
+        # Ожидание перед повторной попыткой подключения
+        await asyncio.sleep(5)
 
 if __name__ == "__main__":
     input_queue = Queue()
