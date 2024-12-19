@@ -23,13 +23,14 @@ def input_thread(input_queue):
             break
 
 # Асинхронная функция отправки сообщений
-async def send_messages(websocket, input_queue):
+async def send_messages(websocket, input_queue, stop_event):
     try:
-        while True:
+        while not stop_event.is_set():
             message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
                 await websocket.close()
+                stop_event.set()  # Установить событие завершения
                 break
             await websocket.send(message)
             print(f"Отправлено: {message}")
@@ -37,20 +38,28 @@ async def send_messages(websocket, input_queue):
         print(f"Ошибка при отправке: {e}")
 
 # Асинхронная функция получения сообщений
-async def receive_messages(websocket):
+async def receive_messages(websocket, stop_event):
     try:
-        while True:
-            response = await websocket.recv()
-            print(f"\nПолучено от сервера: {response}")
-            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
-    except websockets.ConnectionClosedOK:
-        print("Соединение закрыто (получение).")
+        while not stop_event.is_set():
+            try:
+                response = await websocket.recv()
+                print(f"\nПолучено от сервера: {response}")
+                print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
+            except websockets.ConnectionClosedOK:
+                print("\nСоединение закрыто сервером.")
+                stop_event.set()  # Установить событие завершения
+                break
+            except websockets.ConnectionClosedError as e:
+                print(f"\nОшибка соединения: {e}")
+                stop_event.set()
+                break
     except Exception as e:
         print(f"Ошибка при получении сообщения: {e}")
 
 # Основная функция клиента
 async def test_client():
     input_queue = Queue()
+    stop_event = asyncio.Event()  # Событие для координации завершения
 
     # Запуск потока для ввода
     input_thread_instance = Thread(target=input_thread, args=(input_queue,))
@@ -61,18 +70,21 @@ async def test_client():
         print(f"Подключение к серверу {URI}...")
         async with websockets.connect(URI, ssl=ssl_context) as websocket:
             print("Подключение установлено.")
-            # Первое приглашение для ввода
             print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
 
             # Запуск задач для отправки и получения сообщений
             await asyncio.gather(
-                send_messages(websocket, input_queue),
-                receive_messages(websocket),
+                send_messages(websocket, input_queue, stop_event),
+                receive_messages(websocket, stop_event),
             )
+    except websockets.ConnectionClosed:
+        print("Сервер завершил соединение.")
     except Exception as e:
         print(f"Ошибка клиента: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        print("Клиент завершил работу.")
 
 # Запуск клиента
 if __name__ == "__main__":
