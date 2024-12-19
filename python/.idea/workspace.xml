@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d208df46-576e-4f07-92f6-5c5f6ea9dc9d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Client_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Client_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/Client_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/client_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,8 +38,8 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.Client_test">
-    <configuration name="Client_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.client_test">
+    <configuration name="client_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="python" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -52,7 +52,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/Client_test.py" />
+      <option name="SCRIPT_NAME" value="F:\proj\Linux\linudrv\python\examples\client_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -86,7 +86,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Client_test" />
+        <item itemvalue="Python.client_test" />
       </list>
     </recent_temporary>
   </component>
