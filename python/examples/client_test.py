@@ -1,6 +1,8 @@
 import asyncio
 import ssl
 import websockets
+from threading import Thread
+from queue import Queue
 
 # Настройки клиента
 HOST = "localhost"
@@ -11,11 +13,20 @@ ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
-# Функция отправки сообщений
-async def send_messages(websocket):
+# Поток для ввода данных
+def input_thread(input_queue):
+    while True:
+        message = input("Введите сообщение для отправки ('exit' для завершения): ")
+        input_queue.put(message)
+        if message.lower() == "exit":
+            break
+
+# Асинхронная функция отправки сообщений
+async def send_messages(websocket, input_queue):
     try:
         while True:
-            message = input("Введите сообщение для отправки ('exit' для завершения): ")
+            # Ожидание сообщения от потока
+            message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
                 await websocket.close()
@@ -25,7 +36,7 @@ async def send_messages(websocket):
     except Exception as e:
         print(f"Ошибка при отправке: {e}")
 
-# Функция получения сообщений
+# Асинхронная функция получения сообщений
 async def receive_messages(websocket):
     try:
         while True:
@@ -38,14 +49,21 @@ async def receive_messages(websocket):
 
 # Основная функция клиента
 async def test_client():
+    input_queue = Queue()
+
+    # Запуск потока для ввода
+    input_thread_instance = Thread(target=input_thread, args=(input_queue,))
+    input_thread_instance.daemon = True
+    input_thread_instance.start()
+
     try:
         print(f"Подключение к серверу {URI}...")
         async with websockets.connect(URI, ssl=ssl_context) as websocket:
             print("Подключение установлено.")
 
-            # Запуск задач отправки и получения сообщений
+            # Запуск задач для отправки и получения сообщений
             await asyncio.gather(
-                send_messages(websocket),
+                send_messages(websocket, input_queue),
                 receive_messages(websocket),
             )
     except Exception as e:
