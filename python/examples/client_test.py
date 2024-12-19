@@ -16,7 +16,8 @@ ssl_context.verify_mode = ssl.CERT_NONE
 # Поток для ввода данных
 def input_thread(input_queue):
     while True:
-        message = input("Введите сообщение для отправки ('exit' для завершения): ")
+        print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)  # Ожидание ввода
+        message = input()
         input_queue.put(message)
         if message.lower() == "exit":
             break
@@ -41,7 +42,8 @@ async def receive_messages(websocket):
     try:
         while True:
             response = await websocket.recv()
-            print(f"Получено от сервера: {response}")
+            print(f"\nПолучено от сервера: {response}")
+            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)  # Повторный ввод
     except websockets.ConnectionClosedOK:
         print("Соединение закрыто (получение).")
     except Exception as e:
