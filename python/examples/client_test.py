@@ -38,4 +38,3 @@ async def test_client():
 # Запуск клиента
 if __name__ == "__main__":
     asyncio.run(test_client())
-    
