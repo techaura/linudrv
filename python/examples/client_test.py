@@ -16,7 +16,7 @@ ssl_context.verify_mode = ssl.CERT_NONE
 # Поток для ввода данных
 def input_thread(input_queue):
     while True:
-        print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)  # Ожидание ввода
+        print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
         message = input()
         input_queue.put(message)
         if message.lower() == "exit":
@@ -26,7 +26,6 @@ def input_thread(input_queue):
 async def send_messages(websocket, input_queue):
     try:
         while True:
-            # Ожидание сообщения от потока
             message = await asyncio.to_thread(input_queue.get)
             if message.lower() == "exit":
                 print("Завершение соединения...")
@@ -43,7 +42,7 @@ async def receive_messages(websocket):
         while True:
             response = await websocket.recv()
             print(f"\nПолучено от сервера: {response}")
-            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)  # Повторный ввод
+            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
     except websockets.ConnectionClosedOK:
         print("Соединение закрыто (получение).")
     except Exception as e:
@@ -62,6 +61,8 @@ async def test_client():
         print(f"Подключение к серверу {URI}...")
         async with websockets.connect(URI, ssl=ssl_context) as websocket:
             print("Подключение установлено.")
+            # Первое приглашение для ввода
+            print("Введите сообщение для отправки ('exit' для завершения):", end=" ", flush=True)
 
             # Запуск задач для отправки и получения сообщений
             await asyncio.gather(
