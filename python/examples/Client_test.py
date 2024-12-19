@@ -21,7 +21,6 @@ async def send_messages(websocket):
                 print("Завершение соединения...")
                 await websocket.close()
                 break
-
             await websocket.send(message)
             print(f"Отправлено: {message}")
     except websockets.ConnectionClosedOK:
@@ -75,5 +74,5 @@ async def test_client():
 
 # Запуск клиента
 if __name__ == "__main__":
-    asyncio.run(test_client())
+    asyncio.run(test_client())  # asyncio.run(test_client())
 
