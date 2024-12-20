@@ -2,7 +2,7 @@ import subprocess
 import time
 
 # Number of clients to launch
-num_clients = 20
+num_clients = 50
 
 # Path to the client script
 client_script = "client_test.py"
