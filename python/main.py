@@ -3,6 +3,7 @@ import websockets
 import ssl
 import os
 import subprocess
+import psutil
 
 # Settings
 HOST = "localhost"
@@ -62,10 +63,16 @@ ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
 # WebSocket message handler
 async def handler(websocket, path):
     print(f"New connection: {websocket.remote_address}")
+
+    # Get memory usage information
+    process = psutil.Process()
+    memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory usage in MB
+    print(f"Server memory usage after connection: {memory_usage:.2f} MB")
+
     try:
         while True:
             message = await websocket.recv()
-            print(f"Message received from a customer: {message}")
+            print(f"Message received from the client: {message}")
             response = f"Echo: {message}"
             await websocket.send(response)
             print(f"Response sent: {response}")
