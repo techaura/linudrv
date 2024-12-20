@@ -6,7 +6,7 @@ import subprocess
 import psutil
 
 # Settings
-HOST = "localhost"
+HOST = "0.0.0.0"
 PORT = 8765
 CERT_DIR = "misc"
 CERT_FILE = os.path.join(CERT_DIR, "certificate.pem")

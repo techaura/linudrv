@@ -5,7 +5,7 @@ from threading import Thread
 from queue import Queue
 
 # Client setup
-HOST = "localhost"
+HOST = "192.168.88.245"
 PORT = 8765
 URI = f"wss://{HOST}:{PORT}"
 
