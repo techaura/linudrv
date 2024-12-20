@@ -4,6 +4,8 @@ import ssl
 import os
 import subprocess
 import psutil
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Settings
 HOST = "0.0.0.0"
@@ -65,9 +67,9 @@ async def handler(websocket, path):
     print(f"New connection: {websocket.remote_address}")
 
     # Get memory usage information and log it
-    process = psutil.Process()
-    memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory usage in MB
-    print(f"Current server memory usage: {memory_usage:.2f} MB (after new connection)")
+    #process = psutil.Process()
+    # memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory usage in MB
+    # print(f"Current server memory usage: {memory_usage:.2f} MB (after new connection)")
 
     try:
         while True:
