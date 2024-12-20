@@ -1,8 +1,15 @@
 import subprocess
 import time
+import argparse
+
+# Argument parser setup
+parser = argparse.ArgumentParser(description="Launch multiple WebSocket clients.")
+parser.add_argument("-n", "--num-clients", type=int, required=True,
+                    help="Number of clients to launch.")
+args = parser.parse_args()
 
 # Number of clients to launch
-num_clients = 50
+num_clients = args.num_clients
 
 # Path to the client script
 client_script = "client_test.py"
