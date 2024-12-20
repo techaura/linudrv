@@ -1,43 +1,74 @@
-import subprocess
-import time
+import threading
 import argparse
+import asyncio
+import time
+from client_test import main as client_main  # Assuming your client_test.py has an async main() function
 
-# Argument parser setup
-parser = argparse.ArgumentParser(description="Launch multiple WebSocket clients.")
-parser.add_argument("-n", "--num-clients", type=int, required=True,
-                    help="Number of clients to launch.")
-args = parser.parse_args()
+# Global event to signal clients to stop
+stop_event = threading.Event()
 
-# Number of clients to launch
-num_clients = args.num_clients
+# Function to run a client
+def run_client(client_id):
+    print(f"Starting client {client_id}")
+    try:
+        asyncio.run(client_main_with_stop(client_id))
+    except asyncio.CancelledError:
+        print(f"Client {client_id} was stopped.")
+    except Exception as e:
+        print(f"Error in client {client_id}: {e}")
+    print(f"Client {client_id} finished")
 
-# Path to the client script
-client_script = "client_test.py"
+# Wrapper for client_main to support stop event
+async def client_main_with_stop(client_id):
+    # Wrap the client_main in a try/finally to ensure proper exit
+    task = asyncio.create_task(client_main())
+    try:
+        while not stop_event.is_set():
+            await asyncio.sleep(1)  # Prevent tight loop
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            print(f"Client {client_id} received cancel signal.")
 
-# List to hold subprocesses
-client_processes = []
+# Main script
+if __name__ == "__main__":
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="Launch multiple WebSocket clients using threads.")
+    parser.add_argument("-n", "--num-clients", type=int, required=True,
+                        help="Number of clients to launch.")
+    args = parser.parse_args()
+    num_clients = args.num_clients
 
-try:
+    # Create and start threads
+    threads = []
     print(f"Launching {num_clients} clients...")
     for i in range(num_clients):
-        # Start each client as a subprocess
-        process = subprocess.Popen(["python3", client_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        client_processes.append(process)
-        print(f"Client {i+1} launched.")
+        thread = threading.Thread(target=run_client, args=(i + 1,), daemon=True)  # Mark threads as daemons
+        thread.start()
+        threads.append(thread)
 
+    # Wait for 10 seconds
     print("All clients launched. Waiting for 10 seconds...")
     time.sleep(10)
 
-except Exception as e:
-    print(f"Error during client launch: {e}")
+    # Signal all clients to stop
+    print("Signaling clients to shut down...")
+    stop_event.set()
 
-finally:
-    print("Shutting down all clients...")
-    for i, process in enumerate(client_processes):
-        try:
-            process.terminate()  # Send SIGTERM to the process
-            process.wait()       # Wait for the process to terminate
-            print(f"Client {i+1} shut down.")
-        except Exception as e:
-            print(f"Error shutting down client {i+1}: {e}")
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join(timeout=1)  # Add timeout to avoid infinite waiting
+
     print("All clients have been shut down.")
+    print("Cleaning up asyncio event loop...")
+
+    # Explicitly clean up the asyncio event loop
+    try:
+        asyncio.get_event_loop().close()
+    except RuntimeError:
+        pass
+
+    print("Script completed successfully.")
+
