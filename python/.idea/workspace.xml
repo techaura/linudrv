@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d208df46-576e-4f07-92f6-5c5f6ea9dc9d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/clients_test_autorun.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/clients_test_autorun.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,7 +33,7 @@
     "Python.client_test (1).executor": "Run",
     "Python.client_test.executor": "Run",
     "Python.clients_test_autorun.executor": "Run",
-    "Python.main.executor": "Debug",
+    "Python.main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "Improving__server",

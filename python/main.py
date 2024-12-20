@@ -4,6 +4,7 @@ import ssl
 import os
 import subprocess
 import psutil
+from OpenSSL import SSL
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -60,12 +61,10 @@ if not os.path.exists(CERT_FILE) or not os.path.exists(KEY_FILE):
 # SSL Configuration
 ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
-# Enable session caching
-ssl_context.options &= ~ssl.OP_NO_TICKET  # Enable session tickets (if supported)
-# Optional: Set maximum cached sessions
-ssl_context.set_num_tickets(100)  # Adjust number of tickets if supported
-# Optional: Configure session ID cache
-ssl_context.session_cache_mode = ssl.SSL_SESS_CACHE_SERVER
+# Enable session tickets (default behavior, just for clarity)
+ssl_context.options &= ~ssl.OP_NO_TICKET  # Ensure session tickets are enabled
+context = SSL.Context(SSL.TLSv1_2_METHOD)
+context.set_options(SSL.OP_NO_TICKET)
 
 
 # WebSocket message handler
