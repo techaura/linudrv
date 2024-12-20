@@ -64,10 +64,10 @@ ssl_context.load_cert_chain(certfile=CERT_FILE, keyfile=KEY_FILE)
 async def handler(websocket, path):
     print(f"New connection: {websocket.remote_address}")
 
-    # Get memory usage information
+    # Get memory usage information and log it
     process = psutil.Process()
     memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory usage in MB
-    print(f"Server memory usage after connection: {memory_usage:.2f} MB")
+    print(f"Current server memory usage: {memory_usage:.2f} MB (after new connection)")
 
     try:
         while True:
