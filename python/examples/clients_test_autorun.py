@@ -34,4 +34,3 @@ finally:
         except Exception as e:
             print(f"Error shutting down client {i+1}: {e}")
     print("All clients have been shut down.")
-    
