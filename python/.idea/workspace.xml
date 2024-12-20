@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d208df46-576e-4f07-92f6-5c5f6ea9dc9d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +40,7 @@
     "settings.editor.selected.configurable": "preferences.lookFeel"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.client_test (1)">
+  <component name="RunManager" selected="Python.clients_test_autorun">
     <configuration name="client_test (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="python" />
       <option name="ENV_FILES" value="" />
@@ -133,8 +132,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.client_test (1)" />
         <item itemvalue="Python.clients_test_autorun" />
+        <item itemvalue="Python.client_test (1)" />
         <item itemvalue="Python.client_test" />
       </list>
     </recent_temporary>
