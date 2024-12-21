@@ -98,7 +98,8 @@ async def main():
         handler,
         HOST,
         PORT,
-        ssl=ssl_context
+        ssl=ssl_context,
+        timeout=60
     )
     print(f"The server is up and running. Waiting for connections on wss://{HOST}:{PORT}")
 

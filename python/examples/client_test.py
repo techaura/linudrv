@@ -69,7 +69,7 @@ async def reconnect_timer(input_queue, exit_event, connection_event):
 async def connect_to_server(input_queue, exit_event, connection_event):
     try:
         print(f"\nattempt to connect to the server {URI}...")
-        async with websockets.connect(URI, ssl=ssl_context) as websocket:
+        async with websockets.connect(URI, ssl=ssl_context, timeout=120) as websocket:
             print("Connection established.")
             print("Enter the message to be sent ('exit' to close client):", end=" ", flush=True)
             connection_event.set()  # Установить состояние соединения

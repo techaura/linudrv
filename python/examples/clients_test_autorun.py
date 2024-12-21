@@ -20,17 +20,20 @@ def run_client(client_id):
 
 # Wrapper for client_main to support stop event
 async def client_main_with_stop(client_id):
-    # Wrap the client_main in a try/finally to ensure proper exit
     task = asyncio.create_task(client_main())
     try:
         while not stop_event.is_set():
-            await asyncio.sleep(1)  # Prevent tight loop
+            await asyncio.sleep(1)
     finally:
         task.cancel()
         try:
             await task
         except asyncio.CancelledError:
             print(f"Client {client_id} received cancel signal.")
+
+async def shutdown_event_loop():
+    loop = asyncio.get_event_loop()
+    await loop.shutdown_default_executor()
 
 # Main script
 if __name__ == "__main__":
@@ -45,13 +48,13 @@ if __name__ == "__main__":
     threads = []
     print(f"Launching {num_clients} clients...")
     for i in range(num_clients):
-        thread = threading.Thread(target=run_client, args=(i + 1,), daemon=True)  # Mark threads as daemons
+        thread = threading.Thread(target=run_client, args=(i + 1,), daemon=True)
         thread.start()
         threads.append(thread)
 
     # Wait for 10 seconds
     print("All clients launched. Waiting for 10 seconds...")
-    time.sleep(10)
+    time.sleep(120)
 
     # Signal all clients to stop
     print("Signaling clients to shut down...")
@@ -59,16 +62,13 @@ if __name__ == "__main__":
 
     # Wait for all threads to complete
     for thread in threads:
-        thread.join(timeout=1)  # Add timeout to avoid infinite waiting
+        thread.join()
 
     print("All clients have been shut down.")
     print("Cleaning up asyncio event loop...")
 
-    # Explicitly clean up the asyncio event loop
-    try:
-        asyncio.get_event_loop().close()
-    except RuntimeError:
-        pass
+    # Explicitly run shutdown tasks
+    asyncio.run(shutdown_event_loop())
 
     print("Script completed successfully.")
 
