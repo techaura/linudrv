@@ -5,7 +5,7 @@ from threading import Thread
 from queue import Queue
 
 # Client setup
-HOST = "192.168.88.245"
+HOST = "192.168.88.250"  # "192.168.88.245"
 PORT = 8765
 URI = f"wss://{HOST}:{PORT}"
 
@@ -59,7 +59,7 @@ async def receive_messages(websocket, exit_event, connection_event):
 # Reconnection timer
 async def reconnect_timer(input_queue, exit_event, connection_event):
     while not exit_event.is_set():
-        await asyncio.sleep(5)  # time in seconds before try to next reconnect
+        await asyncio.sleep(10)  # time in seconds before try to next reconnect
         if not connection_event.is_set():
             print("\nReconnection attempt...")
             await connect_to_server(input_queue, exit_event, connection_event)
@@ -69,7 +69,9 @@ async def reconnect_timer(input_queue, exit_event, connection_event):
 async def connect_to_server(input_queue, exit_event, connection_event):
     try:
         print(f"\nattempt to connect to the server {URI}...")
-        async with websockets.connect(URI, ssl=ssl_context, timeout=120) as websocket:
+        # Создание соединения отдельно, обернутое в asyncio.wait_for
+        websocket = await asyncio.wait_for(websockets.connect(URI, ssl=ssl_context), timeout=120)
+        try:
             print("Connection established.")
             print("Enter the message to be sent ('exit' to close client):", end=" ", flush=True)
             connection_event.set()  # Установить состояние соединения
@@ -79,13 +81,17 @@ async def connect_to_server(input_queue, exit_event, connection_event):
                 send_messages(websocket, input_queue, exit_event),
                 receive_messages(websocket, exit_event, connection_event),
             )
+        finally:
+            await websocket.close()  # Гарантированное закрытие соединения
+    except asyncio.TimeoutError:
+        print("\nClient ERROR: Connection timed out during handshake.")
+        connection_event.clear()
     except (websockets.ConnectionClosed, ConnectionRefusedError):
-        print("\nserver is unavailable.")
+        print("\nServer is unavailable.")
         connection_event.clear()
     except Exception as e:
-        print(f"\nClienr ERROR: {e}.")
+        print(f"\nClient ERROR: {e}.")
         connection_event.clear()
-
 
 
 async def main():
